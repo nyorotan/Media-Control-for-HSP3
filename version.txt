@@ -1,0 +1,4 @@
+_FILEVERSION=1.0.0
+ProductName="Media Control for HSP3"
+CompanyName=nyorotan
+LegalCopyright=@ 2026 nyorotan
