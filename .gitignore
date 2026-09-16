@@ -1,0 +1,36 @@
+# ビルド成果物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# テスト関連
+*.test
+*.out
+*.prof
+
+# IDE / エディタ設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Go固有
+vendor/
+go.work
+go.work.sum
+
+# HSP3固有
+hsptmp
+obj
+start.ax
+packfile
+必ずお読み下さい.txt

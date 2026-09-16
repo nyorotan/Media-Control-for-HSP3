@@ -1,0 +1,176 @@
+//==============================================================================
+// タスクバー埋め込み型メディアコントローラーサンプル
+//==============================================================================
+#packopt icon "icon.ico"
+#packopt version "version.txt"
+#packopt name "Media-Control"
+
+#include "TaskBarEmbedder.as"
+
+// --- Windows API 定数 ---
+#define WM_CONTEXTMENU       0x007B
+#define WM_TIMER             0x0113
+#define TPM_RIGHTBUTTON      0x0002
+#define TPM_RETURNCMD        0x0100
+#define TASKBAR_UPDATE_TIMER 1
+#define TASKBAR_UPDATE_INTERVAL 500
+
+#uselib "user32.dll"
+    #func SetTimerApi "SetTimer" int, int, int, int
+    #func KillTimerApi "KillTimer" int, int
+
+// ウィンドウスタイル (WS_CHILD | WS_VISIBLE)
+#define WS_CHILD_VISIBLE     (WS_CHILD | WS_VISIBLE)
+
+// メディアキー定数
+#define VK_MEDIA_NEXT_TRACK  0xB0
+#define VK_MEDIA_PREV_TRACK  0xB1
+#define VK_MEDIA_STOP        0xB2
+#define VK_MEDIA_PLAY_PAUSE  0xB3
+#define KEYEVENTF_KEYUP      0x02
+#define KEYEVENTF_EXTENDEDKEY 1
+
+// --- 初期化処理 ---
+onexit *s_exit
+oncmd gosub *on_context_menu, WM_CONTEXTMENU
+oncmd gosub *on_taskbar_timer, WM_TIMER
+
+// タスクバーの状態取得
+GetTaskBarPosition
+tbPos = stat
+GetTaskBarSize tWidth, tHeight
+
+// タスクバーの向きを判定 (左/右 = 縦)
+isVertical = (tbPos == TASKBAR_POS_LEFT) | (tbPos == TASKBAR_POS_RIGHT)
+
+// 画像読み込み
+buffer 1
+picload "music_out.bmp", 0
+icon_src_size = ginfo(13) // アイコン1個のサイズ(正方形と想定)
+
+// --- レイアウト計算とウィンドウ生成 ---
+gosub *build_layout
+SetTimerApi hwnd, TASKBAR_UPDATE_TIMER, TASKBAR_UPDATE_INTERVAL, 0
+goto *main_loop
+
+*build_layout
+if isVertical {
+    // --- 縦置きタスクバー用 ---
+    app_width  = tWidth
+    app_height = tWidth * 4
+
+    buffer 2, app_width * 4, app_width
+    gsel 2
+	gzoom app_width * 4, app_width, 1, 0, 0, icon_src_size * 4, icon_src_size, 1
+
+    screen 0, app_width, app_height
+    objmode 2
+    objsize app_width, app_width
+    objimage 2, 0, 0, 0, 0
+    pos 0, 0 : button gosub "", *btn1_click
+	objimage 2, app_width * 1, 0, app_width * 1, 0
+	// objimage 2, 0, app_width * 1, 0, app_width * 1
+    pos 0, app_width : button gosub "", *btn2_click
+	objimage 2, app_width * 2, 0, app_width * 2, 0
+	// objimage 2, 0, app_width * 2, 0, app_width * 2
+    pos 0, app_width * 2 : button gosub "", *btn3_click
+	objimage 2, app_width * 3, 0, app_width * 3, 0
+	// objimage 2, 0, app_width * 3, 0, app_width * 3
+    pos 0, app_width * 3 : button gosub "", *btn4_click
+
+	// ウィンドウを子ウィンドウ化
+    SetWindowLong hwnd, -16, WS_CHILD_VISIBLE
+	// 縦置き用モジュール関数を呼んでタスクバーに埋め込み
+	// 引数: (自分のhwnd, 埋め込み幅, 埋め込み高さ)
+	EmbedTargetWindowVertical hwnd, app_width, app_height
+} else {
+    // --- 横置きタスクバー用 ---
+	// 高さはタスクバー高さ、幅はボタン4個分（各ボタン正方形: tHeight x tHeight）
+    app_width  = tHeight * 4
+    app_height = tHeight
+
+	// 横長リサイズバッファを用意
+    buffer 2, app_width, app_height
+    gsel 2
+	gzoom app_width, app_height, 1, 0, 0, icon_src_size * 4, icon_src_size, 1
+
+    screen 0, app_width, app_height
+    objmode 2
+    objsize tHeight, tHeight
+	// ボタンを横方向に4つ配置
+    objimage 2, 0, 0, 0, 0
+    pos 0, 0 : button gosub "", *btn1_click
+	objimage 2, app_height * 1, 0, app_height * 1, 0
+    pos tHeight, 0 : button gosub "", *btn2_click
+	objimage 2, app_height * 2, 0, app_height * 2, 0
+	pos tHeight * 2, 0 : button gosub "", *btn3_click
+	objimage 2, app_height * 3, 0, app_height * 3, 0
+	pos tHeight * 3, 0 : button gosub "", *btn4_click
+
+	// ウィンドウを子ウィンドウ化
+    SetWindowLong hwnd, -16, WS_CHILD_VISIBLE
+	// 横置き用モジュール関数を呼んでタスクバーに埋め込み
+	// 引数: (自分のhwnd, 埋め込み幅, 埋め込み高さ)
+    EmbedTargetWindow hwnd, app_width, app_height
+}
+return
+
+*main_loop
+
+// --- コンテキストメニューの作成 ---
+CreatePopupMenu : hMenu = stat
+AppendMenuA hMenu, 0, 1, "バージョン情報..."
+AppendMenuA hMenu, 0x800, 0, ""
+AppendMenuA hMenu, 0, 999, "終了"
+
+stop
+
+//==============================================================================
+// イベント処理
+//==============================================================================
+
+*on_context_menu
+    dim pt, 2
+    GetCursorPos varptr(pt)
+    TrackPopupMenu hMenu, TPM_RIGHTBUTTON | TPM_RETURNCMD, pt(0), pt(1), 0, hwnd, 0
+
+    if stat == 1 {
+        dialog "Media Control for HSP3\nwith\nTaskBarEmbedder module\nVersion 1.0.0\n\nCopyright\n@ 2026 nyorotan\nPowered by HSP3", 0, "バージョン情報"
+    } else : if stat == 999 {
+        goto *s_exit
+    }
+    return 0
+
+*on_taskbar_timer
+    // タスクバーの向き・サイズが変わったときだけ再配置する
+    GetTaskBarPosition
+    newTbPos = stat
+    GetTaskBarSize newTWidth, newTHeight
+    if stat != 0 : return 0
+    newIsVertical = (newTbPos == TASKBAR_POS_LEFT) | (newTbPos == TASKBAR_POS_RIGHT)
+    if (newTbPos != tbPos) | (newTWidth != tWidth) | (newTHeight != tHeight) {
+        KillTimerApi hwnd, TASKBAR_UPDATE_TIMER
+        CleanupTaskBarEmbedding
+        tbPos = newTbPos
+        tWidth = newTWidth
+        tHeight = newTHeight
+        isVertical = newIsVertical
+        clrobj
+        gosub *build_layout
+        SetTimerApi hwnd, TASKBAR_UPDATE_TIMER, TASKBAR_UPDATE_INTERVAL, 0
+    }
+    return 0
+
+// メディアキー送信用の共通サブルーチン
+#define send_key(%1) keybd_event %1, 0, KEYEVENTF_EXTENDEDKEY, 0 : keybd_event %1, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0
+
+*btn1_click : send_key VK_MEDIA_PREV_TRACK : return
+*btn2_click : send_key VK_MEDIA_PLAY_PAUSE : return
+*btn3_click : send_key VK_MEDIA_STOP        : return
+*btn4_click : send_key VK_MEDIA_NEXT_TRACK  : return
+
+*s_exit
+    KillTimerApi hwnd, TASKBAR_UPDATE_TIMER
+    if hMenu != 0 : DestroyMenu hMenu
+    CleanupTaskBarEmbedding
+    end
