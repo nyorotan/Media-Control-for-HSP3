@@ -1,6 +1,7 @@
 🌐 **English** | [Japanese](./README.ja.md)
 
-# Media Control for HSP3 with TaskBarEmbedder module
+# Media Control for HSP3  
+with TaskBarEmbedder module
 
 ![ ](./img/01.jpg)
 
@@ -65,10 +66,10 @@ First, include the module in your HSP3 script:
 onexit *s_exit
 
 GetTaskBarPosition
-pos = stat
+tpos = stat
 GetTaskBarPhysicalSize tbW, tbH
 
-if (pos == TASKBAR_POS_LEFT) | (pos == TASKBAR_POS_RIGHT) {
+if (tpos == TASKBAR_POS_LEFT) | (tpos == TASKBAR_POS_RIGHT) {
     screen 0, tbW, 400
     EmbedTargetWindowVertical hwnd, tbW, 400
 } else {
@@ -111,7 +112,7 @@ stop
 #### `EmbedTargetWindow` Example
 
 ```hsp3
-EmbedTargetWindow hwnd, 400, 120
+EmbedTargetWindow hwnd, 400, 80
 ```
 - Used for a horizontal taskbar.
 - Arguments: target window handle, embed width, embed height.
@@ -161,7 +162,8 @@ Lines 322 and 468 contain transparency settings for horizontal and vertical 
 SetLayeredWindowAttributes _tb_mhtask, 0xffffff, 200, 0x2
 ```
 - `0x2` (`LWA_ALPHA`) with `bAlpha = 200` makes the container about 78 % opaque.
-- To make the white background (`0xffffff`) fully transparent, change the flag to `0x1` (`LWA_COLORKEY`). Example:
+- To make the white background (`0xffffff`) fully transparent, change the flag to `0x1` (`LWA_COLORKEY`).  
+Example:
 
 ```hsp3
 SetLayeredWindowAttributes _tb_mhtask, 0xffffff, 200, 0x1
