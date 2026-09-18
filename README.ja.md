@@ -190,7 +190,7 @@ SetLayeredWindowAttributes _tb_mhtask, 0xffffff, 200, 0x1
 
 #### `EmbedTargetWindow`
 ```hsp3
-EmbedTargetWindow hwnd, 400, 120
+EmbedTargetWindow hwnd, 400, 80
 ```
 
 - 横置きタスクバー向け

@@ -29,7 +29,7 @@
 ;   // 2. 向きに合わせてウィンドウ作成・埋め込み
 ;   if (tbPos == TASKBAR_POS_LEFT) | (tbPos == TASKBAR_POS_RIGHT) {
 ;       screen 0, tbW, 400
-;       button "Click", *btn
+;       button gosub "Click", *btn
 ;       EmbedTargetWindowVertical hwnd, tbW, 400
 ;   } else {
 ;       screen 0, 400, tbH
