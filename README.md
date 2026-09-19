@@ -205,5 +205,5 @@ Do whatever you like with it—boil it, grill it, or whatever.
 
 ## Version Information
 
-- **Version**: v1.0.0
+- **Version**: v1.0.1
 - **Author**: nyorotan

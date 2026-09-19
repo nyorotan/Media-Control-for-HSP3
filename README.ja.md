@@ -248,5 +248,5 @@ CleanupTaskBarEmbedding
 
 ## バージョン情報
 
-- **バージョン**: v1.0.0
+- **バージョン**: v1.0.1
 - **作者**: nyorotan
