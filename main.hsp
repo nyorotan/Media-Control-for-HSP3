@@ -30,6 +30,11 @@
 #define KEYEVENTF_KEYUP      0x02
 #define KEYEVENTF_EXTENDEDKEY 1
 
+#define BS_BITMAP       0x00000080
+#define BM_SETIMAGE     0x00F7
+#define IMAGE_BITMAP    0
+#define GWL_STYLE       -16
+
 // --- 初期化処理 ---
 onexit *s_exit
 oncmd gosub *on_context_menu, WM_CONTEXTMENU
@@ -43,40 +48,51 @@ GetTaskBarSize tWidth, tHeight
 // タスクバーの向きを判定 (左/右 = 縦)
 isVertical = (tbPos == TASKBAR_POS_LEFT) | (tbPos == TASKBAR_POS_RIGHT)
 
-// 画像読み込み
-buffer 1
-picload "music_out.bmp", 0
-icon_src_size = ginfo(13) // アイコン1個のサイズ(正方形と想定)
-
 // --- レイアウト計算とウィンドウ生成 ---
 gosub *build_layout
 SetTimerApi hwnd, TASKBAR_UPDATE_TIMER, TASKBAR_UPDATE_INTERVAL, 0
 goto *main_loop
 
 *build_layout
+// ビットマップのロード (各ボタン用画像ファイルは同ディレクトリに配置)
+bmp1 = LoadImage (0, "btn1.bmp", IMAGE_BITMAP, 0, 0, 0x00000010)
+bmp2 = LoadImage (0, "btn2.bmp", IMAGE_BITMAP, 0, 0, 0x00000010)
+bmp3 = LoadImage (0, "btn3.bmp", IMAGE_BITMAP, 0, 0, 0x00000010)
+bmp4 = LoadImage (0, "btn4.bmp", IMAGE_BITMAP, 0, 0, 0x00000010)
+
 if isVertical {
     // --- 縦置きタスクバー用 ---
     app_width  = tWidth
     app_height = tWidth * 4
 
-    buffer 2, app_width * 4, app_width
-    gsel 2
-	gzoom app_width * 4, app_width, 1, 0, 0, icon_src_size * 4, icon_src_size, 1
-
     screen 0, app_width, app_height
     objmode 2
     objsize app_width, app_width
-    objimage 2, 0, 0, 0, 0
+
+    // ボタンの作成 (BS_BITMAP スタイルを指定)
     pos 0, 0 : button gosub "", *btn1_click
-	objimage 2, app_width * 1, 0, app_width * 1, 0
-	// objimage 2, 0, app_width * 1, 0, app_width * 1
+    h_btn1 = objinfo(stat, 2)
+    GetWindowLong h_btn1, GWL_STYLE
+    SetWindowLong h_btn1, GWL_STYLE, stat | BS_BITMAP
+    SendMessageA h_btn1, BM_SETIMAGE, IMAGE_BITMAP, bmp1
+
     pos 0, app_width : button gosub "", *btn2_click
-	objimage 2, app_width * 2, 0, app_width * 2, 0
-	// objimage 2, 0, app_width * 2, 0, app_width * 2
-    pos 0, app_width * 2 : button gosub "", *btn3_click
-	objimage 2, app_width * 3, 0, app_width * 3, 0
-	// objimage 2, 0, app_width * 3, 0, app_width * 3
-    pos 0, app_width * 3 : button gosub "", *btn4_click
+    h_btn2 = objinfo(stat, 2)
+    GetWindowLong h_btn2, GWL_STYLE
+    SetWindowLong h_btn2, GWL_STYLE, stat | BS_BITMAP
+    SendMessageA h_btn2, BM_SETIMAGE, IMAGE_BITMAP, bmp2
+
+    pos 0, app_width*2 : button gosub "", *btn3_click
+    h_btn3 = objinfo(stat, 2)
+    GetWindowLong h_btn3, GWL_STYLE
+    SetWindowLong h_btn3, GWL_STYLE, stat | BS_BITMAP
+    SendMessageA h_btn3, BM_SETIMAGE, IMAGE_BITMAP, bmp3
+
+    pos 0, app_width*3 : button gosub "", *btn4_click
+    h_btn4 = objinfo(stat, 2)
+    GetWindowLong h_btn4, GWL_STYLE
+    SetWindowLong h_btn4, GWL_STYLE, stat | BS_BITMAP
+    SendMessageA h_btn4, BM_SETIMAGE, IMAGE_BITMAP, bmp4
 
 	// ウィンドウを子ウィンドウ化
     SetWindowLong hwnd, -16, WS_CHILD_VISIBLE
@@ -89,23 +105,34 @@ if isVertical {
     app_width  = tHeight * 4
     app_height = tHeight
 
-	// 横長リサイズバッファを用意
-    buffer 2, app_width, app_height
-    gsel 2
-	gzoom app_width, app_height, 1, 0, 0, icon_src_size * 4, icon_src_size, 1
-
     screen 0, app_width, app_height
     objmode 2
-    objsize tHeight, tHeight
-	// ボタンを横方向に4つ配置
-    objimage 2, 0, 0, 0, 0
-    pos 0, 0 : button gosub "", *btn1_click
-	objimage 2, app_height * 1, 0, app_height * 1, 0
-    pos tHeight, 0 : button gosub "", *btn2_click
-	objimage 2, app_height * 2, 0, app_height * 2, 0
-	pos tHeight * 2, 0 : button gosub "", *btn3_click
-	objimage 2, app_height * 3, 0, app_height * 3, 0
-	pos tHeight * 3, 0 : button gosub "", *btn4_click
+    objsize app_height, app_height
+
+    // ボタンの作成 (BS_BITMAP スタイルを指定)
+	pos 0, 0 : button gosub "", *btn1_click
+    h_btn1 = objinfo(stat, 2)
+    GetWindowLong h_btn1, GWL_STYLE
+    SetWindowLong h_btn1, GWL_STYLE, stat | BS_BITMAP
+    SendMessageA h_btn1, BM_SETIMAGE, IMAGE_BITMAP, bmp1
+
+	pos tHeight, 0 : button gosub "", *btn2_click
+    h_btn2 = objinfo(stat, 2)
+    GetWindowLong h_btn2, GWL_STYLE
+    SetWindowLong h_btn2, GWL_STYLE, stat | BS_BITMAP
+    SendMessageA h_btn2, BM_SETIMAGE, IMAGE_BITMAP, bmp2
+
+	pos tHeight*2, 0 : button gosub "", *btn3_click
+    h_btn3 = objinfo(stat, 2)
+    GetWindowLong h_btn3, GWL_STYLE
+    SetWindowLong h_btn3, GWL_STYLE, stat | BS_BITMAP
+	SendMessageA h_btn3, BM_SETIMAGE, IMAGE_BITMAP, bmp3
+
+	pos tHeight*3, 0 : button gosub "", *btn4_click
+    h_btn4 = objinfo(stat, 2)
+    GetWindowLong h_btn4, GWL_STYLE
+    SetWindowLong h_btn4, GWL_STYLE, stat | BS_BITMAP
+	SendMessageA h_btn4, BM_SETIMAGE, IMAGE_BITMAP, bmp4
 
 	// ウィンドウを子ウィンドウ化
     SetWindowLong hwnd, -16, WS_CHILD_VISIBLE
@@ -135,7 +162,7 @@ stop
     TrackPopupMenu hMenu, TPM_RIGHTBUTTON | TPM_RETURNCMD, pt(0), pt(1), 0, hwnd, 0
 
     if stat == 1 {
-        dialog "Media Control for HSP3\nwith\nTaskBarEmbedder module\nVersion 1.0.0\n\nCopyright\n@ 2026 nyorotan\nPowered by HSP3", 0, "バージョン情報"
+        dialog "Media Control for HSP3\nwith\nTaskBarEmbedder module\nVersion 1.0.1\n\nCopyright\n@ 2026 nyorotan\nPowered by HSP3", 0, "バージョン情報"
     } else : if stat == 999 {
         goto *s_exit
     }
